@@ -17,6 +17,13 @@ class UserStates(StatesGroup):
 
 router = Router()
 
+async def check_token(user_token: str):
+    async with aiohttp.ClientSession() as session:
+        URL = "https://cloud.onlysq.ru/api/files"
+        async with session.get(URL, cookies={"user_token": user_token}) as response:
+            jsn = await response.json()
+            return jsn.ok
+
 async def upload_file(file_path: str, user_token: str):
     URL = "https://cloud.onlysq.ru/upload"
     async with aiohttp.ClientSession() as session:
@@ -108,7 +115,7 @@ async def callback_myfiles(callback_query: CallbackQuery):
             if response.status == 200:
                 files = await response.json()
                 if not files:
-                    await callback_query.message.edit_text(tm["no_files"].get(language, "en"))
+                    await callback_query.message.edit_text(tm["no_files"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
                     return
                 markup = kbs.get_files_keyboard(files, language)
                 await callback_query.message.edit_text(tm["files"].get(language, "en"), reply_markup=markup)
@@ -130,7 +137,7 @@ async def list_user_files(message: Message, state: FSMContext):
             if response.status == 200:
                 files = await response.json()
                 if not files:
-                    await message.edit_text(tm["no_files"].get(language, "en"))
+                    await message.edit_text(tm["no_files"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
                     return
                 markup = kbs.get_files_keyboard(files, language)
                 await message.edit_text(tm["files"][language].get(language, "en"), reply_markup=markup)
@@ -173,7 +180,9 @@ async def set_user_token(message: Message):
     except IndexError:
         await message.edit_text("Please provide a token. Usage: /settoken YOUR_TOKEN", reply_markup=kbs.get_menu_keyboard(language))
         return
-
+    if not await check_token(token):
+        await message.edit_text(tm["invalid_token"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
+        return
     if await User.filter(telegram_id=message.from_user.id).exists() is None:
         await User.create(telegram_id=message.from_user.id, created_at=datetime.utcnow(), user_token=token)
     else:
@@ -275,6 +284,9 @@ async def handle_file_upload(message, state: FSMContext, bot: Bot):
 async def handle_token_input(message: Message, state: FSMContext):
     language = message.from_user.language_code
     token = message.text.strip()
+    if not await check_token(token):
+        await message.answer(tm["invalid_token"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
+        return
     if await User.filter(telegram_id=message.from_user.id).exists() is None:
         await User.create(telegram_id=message.from_user.id, created_at=datetime.utcnow(), user_token=token)
     else:
@@ -342,6 +354,23 @@ async def callback_file_delete(callback_query: CallbackQuery):
             logging.info(f"Delete file response for user {callback_query.from_user.id}: {resp_json}")
             if resp_json.get("ok"):
                 await callback_query.message.edit_text(tm["file_delete_success"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
+            else:
+                await callback_query.message.edit_text(tm["file_delete_failure"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
+    await callback_query.answer()
+
+@router.callback_query(F.data == "generate_token")
+async def callback_gentoken(callback_query: CallbackQuery):
+    language = callback_query.from_user.language_code
+    user = await User.get(telegram_id=callback_query.from_user.id)
+    async with aiohttp.ClientSession() as session:
+        URL = "https://cloud.onlysq.ru/"
+        async with session.get(URL) as response:
+            if response.status == 200:
+                cookies = response.cookies
+                user_token = cookies.get("user_token").value
+                user.user_token = user_token
+                await user.save()
+                await callback_query.message.edit_text(tm["token_generated_success"].get(language, "en").format(user_token), reply_markup=kbs.get_menu_keyboard(language))
             else:
                 await callback_query.message.edit_text(tm["file_delete_failure"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
     await callback_query.answer()

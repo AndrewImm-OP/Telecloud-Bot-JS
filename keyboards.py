@@ -28,7 +28,10 @@ def get_menu_keyboard(language: str = "en") -> InlineKeyboardMarkup:
 
 def get_settings_keyboard(language: str = "en") -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=tb["set_token_button"][language], callback_data="settoken")],
+        [
+            InlineKeyboardButton(text=tb["set_token_button"][language], callback_data="settoken"),
+            InlineKeyboardButton(text=tb["generate_token"][language], callback_data="generate_token")
+        ],
         [InlineKeyboardButton(text=tb["menu_button"][language], callback_data="menu")]
     ])
     return keyboard

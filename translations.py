@@ -66,6 +66,18 @@ translations_messages = {
     "file_delete_failure": {
         "en": "Failed to delete the file.",
         "ru": "Не удалось удалить файл."
+    },
+    "invalid_token": {
+        "en": "The provided token is invalid. Please check and try again.",
+        "ru": "Предоставленный токен недействителен. Пожалуйста, проверьте и попробуйте снова."
+    },
+    "token_generated_success": {
+        "en": "Token was generated: <span class='tg-spoiler'>{}</span>",
+        "ru": "Токен был сгенерирован: <span class='tg-spoiler'>{}</span>"
+    },
+    "token_generated_failure": {
+        "en": "Failed to generate token. Please try again later.",
+        "ru": "Не удалось сгенерировать токен. Пожалуйста, попробуйте позже."
     }
 
 }
@@ -102,5 +114,9 @@ translations_buttons = {
     "delete_button": {
         "en": "Delete file",
         "ru": "Удалить файл"
+    },
+    "generate_token": {
+        "en": "Generate token",
+        "ru": "Сгенерировать токен"
     }
 }

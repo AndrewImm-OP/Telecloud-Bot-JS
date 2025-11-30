@@ -7,6 +7,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, html
 from aiogram.client.default import DefaultBotProperties
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.client.telegram import TelegramAPIServer 
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.types import Message
@@ -19,6 +21,8 @@ from db import User
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN") or ""
+LOCAL_TAPI = os.getenv("LOCAL_TAPI", False)
+LOCAL_TAPI_URL = os.getenv("LOCAL_TAPI_URL", "http://localhost:8000")
 
 if TOKEN == "":
     logging.error("No TOKEN found in environment variables.")
@@ -61,6 +65,11 @@ async def on_shutdown():
 async def main() -> None:
     await init_db()
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+    if LOCAL_TAPI:
+        logging.info(f"Using local TAPI at {LOCAL_TAPI_URL}")
+        session = AiohttpSession(api=TelegramAPIServer.from_base(LOCAL_TAPI_URL, is_local=True))
+        bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML), session=session)
 
     dp.include_router(user_router)
 
