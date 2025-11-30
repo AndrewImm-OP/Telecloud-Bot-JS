@@ -21,7 +21,7 @@ from db import User
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN") or ""
-LOCAL_TAPI = os.getenv("LOCAL_TAPI", False)
+LOCAL_TAPI = bool(os.getenv("LOCAL_TAPI", False).lower() == 'true')
 LOCAL_TAPI_URL = os.getenv("LOCAL_TAPI_URL", "http://localhost:8000")
 
 if TOKEN == "":
