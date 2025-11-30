@@ -12,8 +12,8 @@ translations_messages = {
         "ru": "Пожалуйста, отправьте файл, который вы хотите загрузить.\nДо <b>2</b> ГБ."
     },
     "upload_success": {
-        "en": "Your file has been uploaded successfully!\nFile ID: {}\nDownload link: {}",
-        "ru": "Ваш файл успешно загружен!\nID файла: {}\nCсылка для скачивания: {}"
+        "en": "Your file has been uploaded successfully!\nFile ID: {}\nFile link: {}\n Direct link for download: {}\nPreview link: {}",
+        "ru": "Ваш файл успешно загружен!\nID файла: {}\nСсылка на файл: {}\nПрямая ссылка для скачивания: {}\nСсылка на превью: {}"
     },
     "upload_failure": {
         "en": "Failed to upload the file. Please try again later and check your token.",
@@ -48,8 +48,8 @@ translations_messages = {
         "ru": "Настройки:\nТокен: <span class='tg-spoiler'>{}</span>"
     },
     "file_details": {
-        "en": "File Name: {}\nViews: {}\nUnique views: {}\nDownload Link: {}",
-        "ru": "Имя файла: {}\nПросмотры: {}\nУникальные просмотры: {}\nСсылка для скачивания: {}"
+        "en": "File Name: {}\nViews: {}\nUnique views: {}\nFile link: {}\n Direct link for download: {}\nPreview link: {}",
+        "ru": "Имя файла: {}\nПросмотры: {}\nУникальные просмотры: {}\nСсылка на файл: {}\nПрямая ссылка для скачивания: {}\nСсылка на превью: {}"
     },
     "file_download_failure": {
         "en": "Failed to download the file.",
@@ -78,7 +78,8 @@ translations_messages = {
     "token_generated_failure": {
         "en": "Failed to generate token. Please try again later.",
         "ru": "Не удалось сгенерировать токен. Пожалуйста, попробуйте позже."
-    }
+    },
+    
 
 }
 

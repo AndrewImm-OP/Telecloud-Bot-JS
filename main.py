@@ -61,6 +61,7 @@ async def on_startup():
 
 async def on_shutdown():
     logging.info("Bot is shutting down.")
+    await Tortoise.close_connections()
 
 async def main() -> None:
     await init_db()

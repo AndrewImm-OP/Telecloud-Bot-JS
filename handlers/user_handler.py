@@ -22,7 +22,7 @@ async def check_token(user_token: str):
         URL = "https://cloud.onlysq.ru/api/files"
         async with session.get(URL, cookies={"user_token": user_token}) as response:
             jsn = await response.json()
-            return jsn.get("ok", False)
+            return (not type(jsn) == list)
 
 async def upload_file(file_path: str, user_token: str):
     URL = "https://cloud.onlysq.ru/upload"
@@ -213,7 +213,7 @@ async def handle_file_upload(message, state: FSMContext, bot: Bot):
                 await state.clear()
                 return
             file_path = f"downloads/{message.document.file_name}"
-            await bot.download_file(file.file_path, destination=file_path)
+            await bot.download_file(file.file_path, destination=file_path, timeout=600)
         
         # Handle photo
         elif message.photo:
@@ -224,7 +224,7 @@ async def handle_file_upload(message, state: FSMContext, bot: Bot):
                 await state.clear()
                 return
             file_path = f"downloads/photo_{message.from_user.id}.jpg"
-            await bot.download_file(file.file_path, destination=file_path)
+            await bot.download_file(file.file_path, destination=file_path, timeout=600)
         
         # Handle video
         elif message.video:
@@ -235,7 +235,7 @@ async def handle_file_upload(message, state: FSMContext, bot: Bot):
                 await state.clear()
                 return
             file_path = f"downloads/video_{message.from_user.id}.mp4"
-            await bot.download_file(file.file_path, destination=file_path)
+            await bot.download_file(file.file_path, destination=file_path, timeout=600)
         
         # Handle audio
         elif message.audio:
@@ -246,7 +246,7 @@ async def handle_file_upload(message, state: FSMContext, bot: Bot):
                 await state.clear()
                 return
             file_path = f"downloads/audio_{message.from_user.id}.mp3"
-            await bot.download_file(file.file_path, destination=file_path)
+            await bot.download_file(file.file_path, destination=file_path, timeout=600)
         
         # Handle text
         elif message.text:
@@ -262,10 +262,10 @@ async def handle_file_upload(message, state: FSMContext, bot: Bot):
         # Upload file to server
         response = await upload_file(file_path, user.user_token)
         if response and response.get("ok"):
-            download_link = response.get("url", "N/A")
             _id = response.get("url").split("/")[-1]
+            link = f"https://cloud.onlysq.ru/file/{_id}"
             logging.info(f"File uploaded for user {message.from_user.id}: {response}")
-            await message.answer(tm["upload_success"].get(language, "en").format(_id, download_link), reply_markup=kbs.get_menu_keyboard(language))
+            await message.answer(tm["upload_success"].get(language, "en").format(_id, link, link+"?mode=dl", link+"?mode=view"), reply_markup=kbs.get_menu_keyboard(language))
         else:
             await message.answer(tm["upload_failure"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
         
@@ -302,10 +302,10 @@ async def handle_token_input(message: Message, state: FSMContext):
 async def callback_file_details(callback_query: CallbackQuery):
     language = callback_query.from_user.language_code
     file_id = callback_query.data.split("_")[1]
-    download_link = f"https://cloud.onlysq.ru/file/{file_id}"
+    link = f"https://cloud.onlysq.ru/file/{file_id}"
     file_info = await get_info_file(file_id, (await User.get(telegram_id=callback_query.from_user.id)).user_token)
     await callback_query.message.edit_text(
-        tm["file_details"].get(language, "en").format(file_info['name'], file_info['views'], file_info['unique'], download_link),
+        tm["file_details"].get(language, "en").format(file_info['name'], file_info['views'], file_info['unique'], link, link+"?mode=dl", link+"?mode=view"),
         reply_markup=kbs.get_file_action_keyboard(file_id, language)
     )
 
