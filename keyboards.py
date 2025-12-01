@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from translations import translations_buttons as tb
+import math
 
 def get_welcome_keyboard(language: str = "en") -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
@@ -14,11 +15,56 @@ def get_welcome_keyboard(language: str = "en") -> InlineKeyboardMarkup:
     ])
     return keyboard
 
-def get_files_keyboard(files, language: str = "en") -> InlineKeyboardMarkup:
+def get_files_keyboard(
+    files: list,
+    current_page: int = 1,
+    language: str = "en"
+) -> InlineKeyboardMarkup:
     buttons = []
-    for file in files:
-        buttons.append([InlineKeyboardButton(text=file['name'], callback_data=f"file_{file['id']}")])
+    FILES_PER_PAGE = 5
+    start_index = (current_page - 1) * FILES_PER_PAGE
+    end_index = start_index + FILES_PER_PAGE
+
+    files_on_page = files[start_index:end_index]
+
+    for file in files_on_page:
+        buttons.append([
+            InlineKeyboardButton(
+                text=file['name'],
+                callback_data=f"file_{file['id']}"
+            )
+        ])
+
+    pagination_buttons = []
+    total_pages = math.ceil(len(files) / FILES_PER_PAGE)
+
+    if current_page > 1:
+        pagination_buttons.append(
+            InlineKeyboardButton(
+                text=tb["previous_page_button"].get(language, 'en'),
+                callback_data=f"page_{current_page - 1}"
+            )
+        )
+
+    pagination_buttons.append(
+        InlineKeyboardButton(
+            text=f"📄 {current_page}/{total_pages} 📄",
+            callback_data="do_nothing"
+        )
+    )
+
+    if current_page < total_pages:
+        pagination_buttons.append(
+            InlineKeyboardButton(
+                text=tb["next_page_button"].get(language, 'en'),
+                callback_data=f"page_{current_page + 1}"
+            )
+        )
+    
+    buttons.append(pagination_buttons)
+
     buttons.append([InlineKeyboardButton(text=tb["menu_button"].get(language, 'en'), callback_data="menu")])
+
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 

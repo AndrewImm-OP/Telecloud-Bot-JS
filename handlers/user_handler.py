@@ -117,7 +117,7 @@ async def callback_myfiles(callback_query: CallbackQuery):
                 if not files:
                     await callback_query.message.edit_text(tm["no_files"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
                     return
-                markup = kbs.get_files_keyboard(files, language)
+                markup = kbs.get_files_keyboard(files, 1, language)
                 await callback_query.message.edit_text(tm["files"].get(language, "en"), reply_markup=markup)
             else:
                 await callback_query.message.edit_text(tm["file_list_failure"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
@@ -139,10 +139,32 @@ async def list_user_files(message: Message, state: FSMContext):
                 if not files:
                     await message.edit_text(tm["no_files"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
                     return
-                markup = kbs.get_files_keyboard(files, language)
+                markup = kbs.get_files_keyboard(files, 1, language)
                 await message.edit_text(tm["files"][language].get(language, "en"), reply_markup=markup)
             else:
                 await message.edit_text(tm["file_list_failure"].get(language, "en"), reply_markup=kbs.get_menu_keyboard(language))
+
+@router.callback_query(F.data.startswith("page_"))
+async def callback_pagination_handler(callback_query: CallbackQuery):
+    next_page = int(callback_query.data.split("_")[1])
+    language = callback_query.from_user.language_code
+
+    user = await User.filter(telegram_id=callback_query.from_user.id).get()
+    if user.user_token is None:
+        await callback_query.answer(tm["invalid_token"].get(language, 'en'), show_alert=True)
+        return
+
+    URL = "https://cloud.onlysq.ru/api/files"
+    async with aiohttp.ClientSession() as session:
+        async with session.get(URL, cookies={"user_token": user.user_token}) as response:
+            if response.status == 200:
+                files = await response.json()
+                markup = kbs.get_files_keyboard(files, next_page, language)
+                await callback_query.message.edit_reply_markup(reply_markup=markup)
+            else:
+                await callback_query.answer(tm["file_list_failure"].get(language, "en"), show_alert=True)
+    
+    await callback_query.answer()
 
 # region menu
 @router.callback_query(F.data == "menu")
@@ -314,7 +336,7 @@ async def callback_file_details(callback_query: CallbackQuery):
 async def callback_file_download(callback_query: CallbackQuery):
     language = callback_query.from_user.language_code
     file_id = callback_query.data.split("_")[1]
-    download_link = f"https://cloud.onlysq.ru/file/{file_id}"
+    download_link = f"https://cloud.onlysq.ru/file/{file_id}?mode=dl"
     file_info = await get_info_file(file_id, (await User.get(telegram_id=callback_query.from_user.id)).user_token)
 
     async with aiohttp.ClientSession() as session:
