@@ -1,18 +1,30 @@
+# Fork 
+Forked from the original Python implementation to JavaScript/TypeScript for improved performance and ecosystem benefits:
+  
+  Better async performance: Node.js event loop provides more efficient handling of concurrent API requests and webhook processing compared to Python's asyncio
+  
+  Native Telegram Bot API libraries: Leveraging production-ready libraries like node-telegram-bot-api or telegraf with better TypeScript support and active maintenance
+  
+  Reduced latency: JavaScript's non-blocking I/O model delivers faster response times for bot interactions and file operations
+  
+  Enhanced scalability: More lightweight runtime memory footprint enables better scaling when handling multiple users simultaneously
+  
+  Development velocity: Faster iteration cycles with hot-reloading and broader package ecosystem for API integrations
+
 # TeleCloud Bot
-Telegram bot for using TeleCloud
-Example: https://t.me/otelecloud_bot
+Original Telegram bot for using TeleCloud: https://t.me/otelecloud_bot
 # Installation
 
-1. Clone the repository `git clone https://github.com/ImSkaiden/telecloud_bot`
+1. Clone the repository `git clone https://github.com/AndrewImm-OP/Telecloud-Bot-JS`
 2. Go to directory `cd telecloudbot`
-3. Install requirements `pip install -r requirements.txt`
+3. Install requirements `npm install`
 4. Create `.env` with contents:
 ```ini
 TOKEN=TELEGRAM_BOT_TOKEN
 LOCAL_TAPI=False
 LOCAL_TAPI_URL=http://localhost:8081
 ```
-5. Start bot using command `python3 main.py`
+5. Start bot using command `node main.js`
 
 # Fix the limit on 20 MB download
 
