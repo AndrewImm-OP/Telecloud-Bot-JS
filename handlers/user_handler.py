@@ -198,6 +198,7 @@ async def handle_file_upload(message, state: FSMContext, bot: Bot):
     language = message.from_user.language_code
     if type(message) == CallbackQuery:
         message = message.message
+    msg = await message.answer(tm['uploading_file'].get(language, 'en'))
     
     user = await User.filter(telegram_id=message.from_user.id).get()
     file_path = None

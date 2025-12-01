@@ -79,6 +79,10 @@ translations_messages = {
         "en": "Failed to generate token. Please try again later.",
         "ru": "Не удалось сгенерировать токен. Пожалуйста, попробуйте позже."
     },
+    "uploading_file": {
+        "en": "Uploading file...",
+        "ru": "Выгружаю файл..."
+    }
     
 
 }
