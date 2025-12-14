@@ -31,3 +31,6 @@ LOCAL_TAPI_URL=http://localhost:8081
 1. Build `telegram-bot-api` using https://tdlib.github.io/telegram-bot-api/build.html for your OS
 2. Run server using `./telegram-bot-api --local --api-id=<API-ID> --api-hash=<API-HASH>`
 3. Edit `LOCAL_TAPI` from `False` to `True` and edit `LOCAL_TAPI_URL` to your local telegram-bot-api on `.env`
+
+# Why?
+  I love JS, and hate Python =D
