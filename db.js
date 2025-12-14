@@ -4,7 +4,6 @@ const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: 'database.sqlite3',
   logging: false,
-  // Добавь пул соединений
   pool: {
     max: 5,
     min: 0,
@@ -40,7 +39,6 @@ const User = sequelize.define('User', {
 
 async function initDb() {
   await sequelize.authenticate();
-  // Включаем WAL режим для производительности
   await sequelize.query('PRAGMA journal_mode = WAL;'); 
   await sequelize.sync();
   console.log('Database initialized (WAL mode enabled).');
