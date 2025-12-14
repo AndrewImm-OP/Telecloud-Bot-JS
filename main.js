@@ -24,7 +24,7 @@ if (LOCAL_TAPI) {
   console.log(`Используем локальный TAPI на ${LOCAL_TAPI_URL}`);
   botOptions.telegram = {
     apiRoot: LOCAL_TAPI_URL,
-    // При использовании локального сервера, нужно указать:
+    // !!!!!! При использовании TAPI, надо указать:
     webhookReply: false // выкл. авто-ответы через вебхук
   };
 }
@@ -90,7 +90,6 @@ bot.action(/^page_(\d+)$/, async (ctx) => {
   }
 
   try {
-    // Тоже заменяем axios на curl
     const curlCommand = `curl -s -b "user_token=${user.user_token}" -H "User-Agent: Mozilla/5.0" "https://cloud.onlysq.ru/api/files"`;
     const { stdout } = await execAsync(curlCommand, { timeout: 30000 });
     const files = JSON.parse(stdout);
@@ -155,7 +154,6 @@ process.once('SIGTERM', () => {
   sequelize.close();
 });
 
-// Start bot
 async function main() {
   try {
     await initDb();
