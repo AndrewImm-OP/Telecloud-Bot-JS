@@ -1,3 +1,0 @@
-aiogram==3.22.0
-dotenv==0.9.9
-tortoise-orm==0.25.1
