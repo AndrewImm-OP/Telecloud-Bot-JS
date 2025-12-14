@@ -12,7 +12,7 @@ import { pipeline } from 'stream/promises';
 
 const execAsync = promisify(exec);
 const API_BASE_URL = 'https://cloud.onlysq.ru/api';
-const UPLOAD_URL = 'https://cloud.onlysq.ru/upload';  // Добавь это
+const UPLOAD_URL = 'https://cloud.onlysq.ru/upload'; 
 const userStates = new Map();
 
 
@@ -43,10 +43,6 @@ export async function handleMyFiles(ctx) {
   await ctx.reply(tm.geting_files[language] || tm.geting_files.en);
 
   try {
-    // Используем curl вместо apiClient.get
-    // -s = silent
-    // -b = cookie
-    // -H = User-Agent (важно для обхода защиты)
     const curlCommand = `curl -s -b "user_token=${user.user_token}" -H "User-Agent: Mozilla/5.0" "${API_BASE_URL}/files"`;
     
     const { stdout, stderr } = await execAsync(curlCommand, { timeout: 30000 });
@@ -83,7 +79,6 @@ export async function handleFileInfo(ctx, fileId) {
   }
 
   try {
-    // Заменяем axios на curl
     const curlCommand = `curl -s -b "user_token=${user.user_token}" -H "User-Agent: Mozilla/5.0" "${API_BASE_URL}/files"`;
     
     const { stdout } = await execAsync(curlCommand, { timeout: 30000 });
@@ -114,16 +109,13 @@ export async function handleFileInfo(ctx, fileId) {
 
     const keyboard = getFileActionKeyboard(fileId, language);
     
-    // Используем try-catch для editMessageText, так как сообщение может не измениться
     try {
       await ctx.editMessageText(message, keyboard);
     } catch (e) {
-      // Если сообщение такое же - просто отправляем новое
       if (e.message.includes('message is not modified')) {
          await ctx.answerCbQuery();
          return;
       }
-      // Если нельзя отредактировать - отправляем новым
       await ctx.reply(message, keyboard);
     }
     
@@ -146,7 +138,6 @@ export async function handleFileDownload(ctx, fileId) {
   const statusMsg = await ctx.reply('⏳ Скачиваем файл...');
 
   try {
-    // 1. Получаем инфо о файле чтобы узнать имя
     const infoCommand = `curl -s -b "user_token=${user.user_token}" -H "User-Agent: Mozilla/5.0" "${API_BASE_URL}/files"`;
     const { stdout: infoStdout } = await execAsync(infoCommand, { timeout: 30000 });
     const files = JSON.parse(infoStdout);
@@ -160,14 +151,10 @@ export async function handleFileDownload(ctx, fileId) {
     const downloadUrl = `https://cloud.onlysq.ru/file/${fileId}?mode=dl`;
     const tempFilePath = path.join('./', fileName);
 
-    // 2. Скачиваем файл с помощью curl
     console.log(`Скачиваем ${fileName}...`);
     
-    // -L = follow redirects (важно!)
-    // -o = output file
     await execAsync(`curl -L -s -b "user_token=${user.user_token}" -H "User-Agent: Mozilla/5.0" -o "${tempFilePath}" "${downloadUrl}"`, { timeout: 300000 });
 
-    // 3. Отправляем файл пользователю
     if (fs.existsSync(tempFilePath)) {
       await ctx.replyWithDocument({ source: tempFilePath, filename: fileName });
       fs.unlinkSync(tempFilePath); // Удаляем после отправки
@@ -206,18 +193,15 @@ export async function handleFileUpload(ctx) {
 
   const statusMsg = await ctx.reply(tm.uploading_file[language] || tm.uploading_file.en);
 
-  // Запускаем загрузку асинхронно, не блокируя update handler
   setImmediate(() => {
     uploadFileAsync(ctx, user.user_token, statusMsg.message_id, language).catch(error => {
       console.error('Async upload error:', error.message);
     });
   });
 
-  // Очищаем состояние сразу
   userStates.delete(ctx.from.id);
 }
 
-// Отдельная асинхронная функция для загрузки
 async function uploadFileAsync(ctx, userToken, statusMessageId, language) {
   let tempFilePath = null;
 
@@ -230,7 +214,6 @@ async function uploadFileAsync(ctx, userToken, statusMessageId, language) {
 
     const fileLink = await ctx.telegram.getFileLink(fileData.file_id);
     
-    // 1. Скачиваем во временный файл (это работает надежно)
     const fileName = fileData.file_name || `file_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     tempFilePath = path.join('./', fileName); // В текущую папку
     
@@ -243,11 +226,6 @@ async function uploadFileAsync(ctx, userToken, statusMessageId, language) {
 
     console.log(`Файл скачан: ${tempFilePath}, начинаю загрузку через curl...`);
 
-    // 2. Отправляем через CURL
-    // -s = silent
-    // -F = form data (загрузка файла)
-    // -b = cookie
-    // -H = headers
     const curlCommand = `curl -s -X POST -F "file=@${tempFilePath}" -b "user_token=${userToken}" -H "User-Agent: Mozilla/5.0" "${UPLOAD_URL}"`;
     
     const { stdout, stderr } = await execAsync(curlCommand, { timeout: 300000 });
@@ -266,7 +244,6 @@ async function uploadFileAsync(ctx, userToken, statusMessageId, language) {
       throw new Error('Invalid JSON from curl: ' + stdout);
     }
 
-    // Удаляем временный файл
     if (fs.existsSync(tempFilePath)) {
       fs.unlinkSync(tempFilePath);
     }
@@ -290,7 +267,6 @@ async function uploadFileAsync(ctx, userToken, statusMessageId, language) {
   } catch (error) {
     console.error('Upload error details:', error.message);
     
-    // Чистим мусор в случае ошибки
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try { fs.unlinkSync(tempFilePath); } catch(e) {}
     }
@@ -348,7 +324,6 @@ export async function handleGenerateToken(ctx) {
 
   setImmediate(async () => {
     try {
-      // Используем curl напрямую - он точно работает!
       const { stdout, stderr } = await execAsync(
         'curl -s -i https://cloud.onlysq.ru/ | grep -i "set-cookie:" | grep "user_token"',
         { timeout: 10000 }
@@ -360,7 +335,6 @@ export async function handleGenerateToken(ctx) {
 
       console.log('Curl output:', stdout);
 
-      // Парсим: Set-Cookie: user_token=TOKEN; ...
       const match = stdout.match(/user_token=([^;]+)/);
       
       if (!match) {
@@ -401,7 +375,6 @@ export async function handleDeleteFile(ctx, fileId) {
   }
 
   try {
-    // 1. Получаем owner_key
     const infoCommand = `curl -s -b "user_token=${user.user_token}" -H "User-Agent: Mozilla/5.0" "${API_BASE_URL}/files"`;
     const { stdout: infoStdout } = await execAsync(infoCommand, { timeout: 30000 });
     const files = JSON.parse(infoStdout);
@@ -411,8 +384,6 @@ export async function handleDeleteFile(ctx, fileId) {
       return ctx.answerCbQuery('Owner key not found');
     }
 
-    // 2. Удаляем файл через CURL
-    // DELETE метод, передаем Authorization header
     const deleteCommand = `curl -s -X DELETE -H "Authorization: ${fileInfo.owner_key}" -H "User-Agent: Mozilla/5.0" "https://cloud.onlysq.ru/file/${fileId}"`;
     
     const { stdout: deleteStdout } = await execAsync(deleteCommand, { timeout: 30000 });
