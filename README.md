@@ -11,6 +11,11 @@ Forked from the original Python implementation to JavaScript/TypeScript for impr
   
   Development velocity: Faster iteration cycles with hot-reloading and broader package ecosystem for API integrations
 
+
+
+<b>......Who am I kidding? It’s nothing like that anyway...</b>
+
+
 # TeleCloud Bot
 Original Telegram bot for using TeleCloud: https://t.me/otelecloud_bot
 # Installation
